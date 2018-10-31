@@ -25,10 +25,9 @@ static unsigned postroute_hook(void *priv, struct sk_buff *skb,
 			       const struct nf_hook_state *state)
 {
 	struct iphdr *hdr = (struct iphdr *)skb_network_header(skb);
-	struct my_entry *me;
+	struct my_entry *me = 0;
 	struct list_head *l;
 	char this_ip[40];
-	int exist = 0;
 
 	pr_info("%pI4", &hdr->daddr);
 	sprintf(this_ip, "%pI4", &hdr->daddr);
@@ -37,13 +36,12 @@ static unsigned postroute_hook(void *priv, struct sk_buff *skb,
 		struct my_entry *i = list_entry(l, struct my_entry, list);
 		if (!strcmp(i->ip, this_ip)) {
 			++i->count;
-			exist = 1;
 			me = i;
 			break;
 		}
 	}
 
-	if (!exist) {
+	if (!me) {
 		struct my_entry *m_list =
 			kmalloc(sizeof(struct my_entry), GFP_KERNEL);
 		m_list->count = 1;
